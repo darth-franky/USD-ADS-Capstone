@@ -1,0 +1,17 @@
+check,count,interpretation
+Expected UTC hours,61368,Complete Pacific calendar years 2019–2025
+Published hourly rows,61368,All expected CISO hourly identifiers in 2019–2025
+Missing UTC timestamps,0,Expected hourly identifiers absent from the workbook
+Duplicate UTC timestamps,0,Repeated unique hourly identifiers
+Missing raw demand,118,Raw reported demand is null
+EIA-imputed demand,94,Missing raw demand filled by EIA
+Missing after EIA adjustment,24,Published adjusted demand remains null
+EIA range errors,3,"Published demand outside the 10,000–70,877 MWh CISO range"
+Isolated discontinuities,12,Values below 60% of both adjacent hours
+Author continuity fills,38,Missing or anomalous hours replaced with the 168-hour lag
+Nonpositive demand values,0,Values at or below zero
+IQR flags,3106,"Values outside 1.5 × IQR; reviewed, not automatically removed"
+23-hour local days,7,Spring daylight-saving transitions
+24-hour local days,2543,Standard operating days
+25-hour local days,7,Fall daylight-saving transitions
+Other local-day lengths,0,Possible missing or duplicated local-day observations

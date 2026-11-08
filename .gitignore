@@ -1,0 +1,13 @@
+.DS_Store
+~$*
+.venv/
+__pycache__/
+*.py[cod]
+
+# Temporary API downloads; the canonical Week 4 workbook and processed CSVs
+# are intentionally versioned so teammates can reproduce the submitted draft.
+data/raw/*.jsonl
+
+# Local render and build artifacts
+.codex-build/week4-article/rendered/
+
