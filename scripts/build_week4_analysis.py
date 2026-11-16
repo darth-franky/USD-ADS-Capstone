@@ -37,9 +37,22 @@ SEASON_COLORS = {
 }
 
 
-def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    name = "Arial Bold.ttf" if bold else "Arial.ttf"
-    return ImageFont.truetype(f"/System/Library/Fonts/Supplemental/{name}", size)
+def font(size: int, bold: bool = False) -> ImageFont.ImageFont:
+    """Load an available font on Windows, macOS, or Linux."""
+    candidates = (
+        ["DejaVuSans-Bold.ttf", "Arial Bold.ttf", "arialbd.ttf"]
+        if bold else
+        ["DejaVuSans.ttf", "Arial.ttf", "arial.ttf"]
+    )
+    for candidate in candidates:
+        try:
+            return ImageFont.truetype(candidate, size)
+        except OSError:
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:  # Older Pillow versions
+        return ImageFont.load_default()
 
 
 def load_data() -> pd.DataFrame:
@@ -94,6 +107,9 @@ def load_data() -> pd.DataFrame:
     usable = df["published_demand_mwh"].mask(
         df["source_range_error"].eq(1) | df["isolated_discontinuity"].eq(1)
     )
+    # The previous-week replacement is a historical continuity treatment.
+    # Data are retrospective and may contain EIA revisions unavailable at the
+    # original forecast issuance. Preserve observation flags for evaluation.
     df["demand_clean_mwh"] = usable.fillna(usable.shift(168)).ffill()
     df["target_observed"] = (
         df["raw_demand_mwh"].notna()
@@ -134,9 +150,10 @@ def add_leakage_safe_features(df: pd.DataFrame) -> pd.DataFrame:
     indexed = out.set_index("timestamp_local")["demand_clean_mwh"]
     daily_rows: list[dict] = []
     for operating_date in pd.to_datetime(out["operating_date"].unique()):
-        cutoff = (operating_date - pd.Timedelta(days=1)).tz_localize(
-            "America/Los_Angeles"
-        ) + pd.Timedelta(hours=12)
+        # Localize the wall-clock noon directly. Adding 12 elapsed hours to
+        # localized midnight is incorrect on the preceding day's DST switch.
+        prior_day_noon = operating_date - pd.Timedelta(days=1) + pd.Timedelta(hours=12)
+        cutoff = prior_day_noon.tz_localize("America/Los_Angeles")
         history_24 = indexed[(indexed.index < cutoff) & (indexed.index >= cutoff - pd.Timedelta(hours=24))]
         history_168 = indexed[(indexed.index < cutoff) & (indexed.index >= cutoff - pd.Timedelta(hours=168))]
         daily_rows.append(

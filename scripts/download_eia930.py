@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Download the CISO hourly demand series from the official EIA API.
+"""Optional EIA API extraction for cross-checking (not Week 4 canonical source).
 
-The UTC range maps exactly to Pacific local calendar years 2019 through 2025.
-The script writes newline-delimited JSON so the raw response remains auditable.
+The submitted Week 4 analysis uses the EIA CISO full-history XLSX workbook.
+This API extraction uses its own period labels; reconcile API timestamps against
+workbook hour-ending timestamps before substituting this output in analyses.
+The script writes auditable newline-delimited JSON.
 """
 
 from __future__ import annotations
