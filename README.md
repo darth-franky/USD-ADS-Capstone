@@ -7,7 +7,7 @@ Historical **day-ahead hourly electricity-demand forecasting** for the Californi
 - `scripts/download_eia930_workbook.py`: downloads the published full-history CISO Excel workbook, the **canonical source** for Week 4.
 - `scripts/build_week4_analysis.py`: creates auditable cleaned/feature CSVs, EDA summary, tables, and three publication figures.
 - `tests/test_week4_pipeline.py`: independent DST/cutoff unit checks and integration checks against generated features.
-- `USD_Capstone_Week_4_Draft_Group_1.docx`: manuscript draft (data understanding, EDA, preparation, and feature design).
+- `USD_Capstone_Week_4_Draft_2_Group_1.docx`: manuscript draft (data understanding, EDA, preparation, and feature design).
 - `outputs/week4/eda_summary.json`: recorded summary of the supplied baseline run; **regenerate it** when rerunning the analysis.
 
 Generated paths include `data/raw/EIA930_CISO.xlsx`, `data/processed/ciso_hourly_demand_2019_2025.csv`, `data/processed/ciso_day_ahead_features_2019_2025.csv`, `outputs/week4/tables/`, and `outputs/week4/figures/`.
