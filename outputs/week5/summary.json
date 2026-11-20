@@ -1,0 +1,86 @@
+{
+  "selected_model": "Random forest",
+  "selected_configs": {
+    "Ridge": 1,
+    "Random forest": 0,
+    "Gradient boosting": 1
+  },
+  "train_rows": 52501,
+  "train_end": "2024-12-30",
+  "test_valid": 8711,
+  "test_days": 362,
+  "baseline_fallback_test_hours": 0,
+  "high_demand_threshold": 38752.0,
+  "mae_95ci": {
+    "Weekly naive": [
+      1381.5163077471711,
+      1779.494436091052
+    ],
+    "Ridge": [
+      1048.5799390814368,
+      1210.993583618138
+    ],
+    "Random forest": [
+      968.4053344228736,
+      1177.8920268501831
+    ],
+    "Gradient boosting": [
+      958.8891326836499,
+      1170.8327955354312
+    ]
+  },
+  "paired_mae_improvement_95ci": [
+    362.54962699801064,
+    655.1075442438535
+  ],
+  "local_example": {
+    "utc_time": "2025-08-22 03:00:00+00:00",
+    "operating_date": "2025-08-21",
+    "actual": 43860.0,
+    "predicted": 36476.75539464132,
+    "feature_values": {
+      "month": 8.0,
+      "day_of_week": 3.0,
+      "hour_local": 20.0,
+      "day_of_year": 233.0,
+      "is_weekend": 0.0,
+      "is_federal_holiday": 0.0,
+      "hour_sin": -0.8660254037844386,
+      "hour_cos": 0.5000000000000001,
+      "dow_sin": 0.4338837391175582,
+      "dow_cos": -0.900968867902419,
+      "doy_sin": -0.7621140503891487,
+      "doy_cos": -0.6474427960827475,
+      "demand_lag_48h": 37701.0,
+      "demand_lag_168h": 35293.0,
+      "history_mean_24h": 31255.58333333333,
+      "history_std_24h": 3786.927491567391,
+      "history_min_24h": 25183.0,
+      "history_max_24h": 37701.0,
+      "history_mean_168h": 29366.386904761905,
+      "history_std_168h": 3804.0313170397258
+    }
+  },
+  "features": [
+    "month",
+    "day_of_week",
+    "hour_local",
+    "day_of_year",
+    "is_weekend",
+    "is_federal_holiday",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "doy_sin",
+    "doy_cos",
+    "demand_lag_48h",
+    "demand_lag_168h",
+    "history_mean_24h",
+    "history_std_24h",
+    "history_min_24h",
+    "history_max_24h",
+    "history_mean_168h",
+    "history_std_168h"
+  ]
+}

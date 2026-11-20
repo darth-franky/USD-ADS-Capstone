@@ -1,0 +1,9 @@
+model,rule,n,hourly_mae
+Weekly naive,24-hour days only,8663,1569.847858709454
+Weekly naive,Retain discontinuities in target scoring,8712,1569.262741046832
+Ridge,24-hour days only,8663,1125.5516981668804
+Ridge,Retain discontinuities in target scoring,8712,1128.6040142528143
+Random forest,24-hour days only,8663,1066.7412493799254
+Random forest,Retain discontinuities in target scoring,8712,1068.2784755389355
+Gradient boosting,24-hour days only,8663,1056.6183719687097
+Gradient boosting,Retain discontinuities in target scoring,8712,1061.2638304879758

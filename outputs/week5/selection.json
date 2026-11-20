@@ -1,0 +1,14 @@
+{
+  "selected_configs": {
+    "Ridge": 1,
+    "Random forest": 0,
+    "Gradient boosting": 1
+  },
+  "validation_mean_mae": {
+    "Weekly naive": 1789.442602954886,
+    "Ridge": 1239.4053602785907,
+    "Random forest": 1133.1696471311375,
+    "Gradient boosting": 1143.8602849495508
+  },
+  "selected_model": "Random forest"
+}
