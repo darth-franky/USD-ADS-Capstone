@@ -1,0 +1,62 @@
+{
+  "features": [
+    "month",
+    "day_of_week",
+    "hour_local",
+    "day_of_year",
+    "is_weekend",
+    "is_federal_holiday",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "doy_sin",
+    "doy_cos",
+    "demand_lag_48h",
+    "demand_lag_168h",
+    "history_mean_24h",
+    "history_std_24h",
+    "history_min_24h",
+    "history_max_24h",
+    "history_mean_168h",
+    "history_std_168h"
+  ],
+  "configurations": {
+    "Ridge": [
+      {
+        "alpha": 1.0
+      },
+      {
+        "alpha": 100.0
+      }
+    ],
+    "Random forest": [
+      {
+        "min_samples_leaf": 5
+      },
+      {
+        "min_samples_leaf": 20
+      }
+    ],
+    "Gradient boosting": [
+      {
+        "max_leaf_nodes": 15
+      },
+      {
+        "max_leaf_nodes": 31
+      }
+    ]
+  },
+  "seed": 599,
+  "validation_years": [
+    2022,
+    2023,
+    2024
+  ],
+  "test_year": 2025,
+  "selection": "lowest unweighted mean annual validation hourly MAE; smaller configuration breaks exact ties",
+  "source_sha256": "790b3b122dd2d7b7359d97e2a99b2bb5c55f6d6ee41799b6e4a6f88e262e9944",
+  "issuance": "preceding local day at noon",
+  "reporting_delay_hours": 0,
+  "limitation": "Retrospectively revised data, not publication-vintage backtest. 2025 was already examined in an earlier alternate analysis; this is a fixed-protocol replication, not a pristine holdout."
+}

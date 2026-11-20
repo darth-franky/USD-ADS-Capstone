@@ -1,0 +1,17 @@
+season,model,n,mae
+Winter,Weekly naive,2160,1035.9550925925926
+Winter,Ridge,2160,925.3999631396799
+Winter,Random forest,2160,736.5330304730207
+Winter,Gradient boosting,2160,718.5746687131526
+Spring,Weekly naive,2183,1408.9092991296382
+Spring,Ridge,2183,1195.5079397648349
+Spring,Random forest,2183,1108.8390773770063
+Spring,Gradient boosting,2183,1111.9545928315654
+Summer,Weekly naive,2207,2212.2895333031265
+Summer,Ridge,2207,1237.509232584008
+Summer,Random forest,2207,1346.2238735783578
+Summer,Gradient boosting,2207,1276.176924119706
+Autumn,Weekly naive,2161,1599.9944470152707
+Autumn,Ridge,2161,1144.571634857394
+Autumn,Random forest,2161,1066.2925920844077
+Autumn,Gradient boosting,2161,1124.464520841103
