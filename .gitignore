@@ -11,3 +11,6 @@ data/raw/*.jsonl
 # Local render and build artifacts
 .codex-build/week4-article/rendered/
 
+
+# Rebuild trained model binaries locally from the recorded protocol.
+outputs/week5/*.joblib

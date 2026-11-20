@@ -34,7 +34,7 @@ For exact environment replay, record a tested `pip freeze` snapshot alongside yo
 
 The intended prediction batch contains all hours for the **next Pacific operating date**, with issuance at **12:00 p.m. Pacific on the preceding day**. Timezone-aware cutoff construction preserves noon across daylight-saving transitions. Baseline historical predictors include 48-hour and 168-hour hourly lags plus calendar and pre-issuance historical summary features. Audit and target-quality flags dependent on target outcomes **must not** be model predictors.
 
-Planned evaluation periods: 2019–2023 development training, 2024 validation/tuning, 2025 untouched holdout. These boundaries are a plan; subsequent model-fitting code must enforce them. Current-source retrospective revisions may not reproduce precisely what was available at historical issuance.
+Week 5 uses expanding annual validation in 2022–2024 and fixed-protocol retrospective assessment in 2025. The assessment year was previously explored; it is not a pristine holdout. Training labels are purged at each first issuance cutoff. Current-source retrospective revisions may not reproduce precisely what was available at historical issuance.
 
 ## Optional EIA API comparison
 
@@ -43,3 +43,7 @@ Planned evaluation periods: 2019–2023 development training, 2024 validation/tu
 ## Data-quality conventions
 
 The canonical pipeline keeps all UTC hourly positions and preserves raw, EIA-imputed, adjusted, cleaned, and quality-flag fields. The author's 60%-of-both-neighbors downward-discontinuity test is a **heuristic**, not a validated industry rule. Its effect should be sensitivity-tested against retaining original flagged values in a later model-evaluation milestone. Exclude missing or anomalous raw target observations from supervised evaluation, even when a continuity-filled value exists for history features.
+
+## Week 5 modeling and historical tool
+
+See [the team handoff](docs/week5/TEAM_HANDOFF.md) for the cumulative manuscript, modeling protocol, review decisions, and reproduction commands. `outputs/week5` records fitted-run results; `app.py` provides a historical evaluation explorer. Install `requirements-modeling.txt`, run `python scripts/build_week5_models.py`, then `python scripts/check_week5_sensitivity.py` and the tests. The manuscript is a team-review draft; it has not been submitted to Canvas.
