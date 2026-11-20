@@ -1,3 +1,5 @@
+Short-term load forecasting research spans statistical regression, conventional machine-learning models, ensembles, and deep-learning architectures (Nti et al., 2020). Reported performance varies with the forecast horizon, load aggregation, predictor availability, and validation design, so no single method can be assumed to perform best across settings. The following review begins with forecasting and feature-design foundations, then examines model complexity, time-series validation, and the conditions under which deep learning may be appropriate.
+
 Figure 4
 End-to-End Forecasting and Evaluation Pipeline
 

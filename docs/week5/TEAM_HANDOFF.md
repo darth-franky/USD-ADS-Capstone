@@ -25,7 +25,7 @@ The validation-selected random forest has 2025 hourly MAE 1,066.1 MWh, versus 1,
 - Validate the anomaly rule scientifically. The isolated-discontinuity filter excludes 12 values and uses the following hour. Neighbors used for historical features are at or before issuance, but retrospective target-quality filtering may still affect which difficult cases are scored. A frozen-prediction scoring check retains the one additional flagged 2025 target: forest MAE changes from 1,066.1 to 1,068.3 MWh. Retraining on unfiltered histories remains future work.
 - Review the annual expanding-window protocol. It adds 2022 and 2023 validation folds to the originally proposed 2024 validation year and purges labels beyond the first forecast cutoff.
 - Do not describe 2025 as an untouched holdout: the Week 4 EDA and earlier alternate modeling already examined it. This run is a fixed-protocol replication. A genuinely later prospective period is required for an unbiased operational assessment.
-- Review instructor annotations on the prior submission before finalizing the cumulative manuscript. This draft does not claim to resolve annotations that were not available in the repository.
+- Reconcile the cumulative article against the latest team manuscript. The repository contains Week 4 Draft 2; this update carries forward the metric rationale and literature-review opening from the later Draft 3. Remaining wording, reference spacing, and acknowledgments need the authors’ final comparison.
 - Read the explicit AI acknowledgment and verify the arguments and code before submission. Thirteen automated checks passed; author review is separate.
 
 ## Tool scope
@@ -34,4 +34,4 @@ The Streamlit application is a historical forecast explorer with daily curves, p
 
 ## Submission status
 
-This is a team-review draft, not a Canvas submission. Franky confirmed the Week 4 submission in Slack. Week 5 is due November 23, 2026. The discussion section, final article, final presentation, writing-center feedback, and final tool have separate requirements and are not automatically complete because this package exists.
+This is a team-review draft, not a Canvas submission. Week 5 is due November 23, 2026. The discussion section, final article, final presentation, writing-center feedback, and final tool have separate requirements and are not automatically complete because this package exists.
