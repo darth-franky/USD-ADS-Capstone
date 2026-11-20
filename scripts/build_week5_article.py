@@ -38,6 +38,8 @@ for t in doc.tables:
    for p in c.paragraphs:
     for r in p.runs:r.font.color.rgb=RGBColor(0,0,0)
 replacements={
+ 'and peak-timing error. Chronological development periods':'and peak-timing error. MAE summarizes typical hourly error in MWh, whereas RMSE gives greater weight to large misses. MAPE expresses error relative to observed demand, which supports comparison across different load levels. Peak-magnitude and peak-timing errors evaluate whether the model captures the size and hour of each day\'s maximum demand. Chronological development periods',
+ '52,940 megawatts in 2030 (California Independent System Operator, 2025).':'52,940 megawatts in 2030 (California Independent System Operator, 2025; California Energy Commission, 2025).',
  'with 2025 reserved as an untouched final holdout if the data audit supports this division.':'with 2025 used for retrospective assessment after the fixed validation-based selection. Earlier exploratory work examined this year, so it is not an untouched holdout.',
  'Model development will use 2019–2023 for initial training, 2024 for chronological validation and tuning, and 2025 as the untouched final holdout.':'Model development uses expanding annual validation in 2022–2024 followed by retrospective assessment in 2025, as detailed in the Modeling section.',
  'The first 168 rows cannot contain every historical feature and are excluded from model fitting, leaving 61,200 feature-complete rows before the observed-target filter.':'The first 168 rows cannot contain every historical feature. There are 61,200 feature-complete rows; Week 5 retains valid-target startup rows using training-only median imputation for ridge and forest and native missing-value handling for boosting.',
@@ -94,6 +96,10 @@ def table(title,columns,rows,best_columns=()):
  header=OxmlElement('w:tblHeader');t.rows[0]._tr.get_or_add_trPr().append(header)
  anchor._p.addprevious(t._tbl)
  return t
+# Carry forward the team's literature-review opening from the submitted Week 4
+# Draft 3 PDF; the repository's editable Draft 2 predates these revisions.
+lr_start=next(p for p in doc.paragraphs if p.text=='Forecasting Foundations and Feature Design')
+para('Short-term load forecasting research spans statistical regression, conventional machine-learning models, ensembles, and deep-learning architectures (Nti et al., 2020). Reported performance varies with the forecast horizon, load aggregation, predictor availability, and validation design, so no single method can be assumed to perform best across settings. The following review begins with forecasting and feature-design foundations, then examines model complexity, time-series validation, and the conditions under which deep learning may be appropriate.',before=lr_start)
 method=next(p for p in doc.paragraphs if p.text=='Data Preparation')
 para('Figure 4\nEnd-to-End Forecasting and Evaluation Pipeline',before=method)
 p=para('',before=method);p.add_run().add_picture(str(OUT/'pipeline.png'),width=Inches(3.15))
