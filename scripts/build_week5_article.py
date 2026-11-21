@@ -1,6 +1,7 @@
 """Insert reproducible Week 5 results into the team's cumulative article."""
 from pathlib import Path
 import json
+from matplotlib.patches import FancyBboxPatch
 import pandas as pd
 from docx import Document
 from docx.shared import RGBColor, Inches, Pt
@@ -16,22 +17,120 @@ summary=json.loads((OUT/'summary.json').read_text())
 selection=json.loads((OUT/'selection.json').read_text())
 scores=pd.read_csv(OUT/'model_scores.csv')
 BLUE=RGBColor.from_string('0000FF')
-# A compact project-specific pipeline for the beginning of Methods.
-fig,ax=plt.subplots(figsize=(5.8,4.2));ax.set_axis_off()
-labels=['EIA CISO workbook 2019–2025\nUTC audit and target-quality mask','Prior-day noon feature cutoff\n48/168-hour lags and calendar predictors','Expanding validation 2022–2024\nWeekly baseline, ridge, forest, boosting','Lock validation winner → assess 2025\nHourly errors, daily peaks, explanations','Historical planning tool\nCurves, peaks, limitations and downloads']
-for i,label in enumerate(labels):
- y=.91-i*.20;ax.text(.5,y,label,ha='center',va='center',fontsize=11,bbox={'boxstyle':'round,pad=.5','fc':'#eff4fa','ec':'#4b647d'})
- if i<4:ax.annotate('',xy=(.5,y-.137),xytext=(.5,y-.065),arrowprops={'arrowstyle':'->','color':'#4b647d'})
-fig.tight_layout();fig.savefig(OUT/'pipeline.png',dpi=200,bbox_inches='tight');plt.close(fig)
-doc=Document(ROOT/'USD_Capstone_Week_4_Draft_2_Group_1.docx')
+
+
+# Week 5 formatting: Control Word section columns
+from copy import deepcopy
+
+def set_section_columns(section, count=2):
+    """Set the number of columns in an existing Word section."""
+    cols = section._sectPr.find(qn('w:cols'))
+
+    if cols is None:
+        cols = OxmlElement('w:cols')
+        section._sectPr.append(cols)
+
+    cols.set(qn('w:num'), str(count))
+
+    if count == 2:
+        cols.set(qn('w:space'), '360')
+
+# Week 5: Project-specific forecasting pipeline
+# Horizontal layout
+
+fig, ax = plt.subplots(figsize=(12, 2.8))
+ax.set_xlim(0, 12)
+ax.set_ylim(0, 2.8)
+ax.axis("off")
+
+stages = [
+    ("1. Data Acquisition",
+     "EIA-930 CISO data\n2019–2025"),
+
+    ("2. Data Preparation",
+     "UTC audit, quality mask\n48/168-hour lags"),
+
+    ("3. Modeling",
+     "2022–2024 validation\nNaive, ridge, RF, boosting"),
+
+    ("4. Evaluation",
+     "2025 retrospective test\nHourly and peak errors"),
+
+    ("5. Project Artifact",
+     "Historical Streamlit tool\nCurves and limitations")
+]
+
+box_width = 1.90
+box_height = 1.18
+gap = 0.42
+start_x = 0.20
+box_y = 0.83
+
+for i, (title, detail) in enumerate(stages):
+    x = start_x + i * (box_width + gap)
+
+    box = FancyBboxPatch(
+        (x, box_y),
+        box_width,
+        box_height,
+        boxstyle="round,pad=0.03",
+        facecolor="#eff4fa",
+        edgecolor="#4b647d",
+        linewidth=1.2
+    )
+    ax.add_patch(box)
+
+    ax.text(
+        x + box_width / 2,
+        box_y + 0.91,
+        title,
+        ha="center",
+        va="center",
+        fontsize=9,
+        fontweight="bold",
+        color="#243e57"
+    )
+
+    ax.text(
+        x + box_width / 2,
+        box_y + 0.44,
+        detail,
+        ha="center",
+        va="center",
+        fontsize=8,
+        linespacing=1.4,
+        color="#243e57"
+    )
+
+    if i < len(stages) - 1:
+        ax.annotate(
+            "",
+            xy=(x + box_width + gap - 0.04, box_y + box_height / 2),
+            xytext=(x + box_width + 0.04, box_y + box_height / 2),
+            arrowprops=dict(
+                arrowstyle="->",
+                color="#4b647d",
+                lw=1.4
+            )
+        )
+
+fig.savefig(
+    OUT / "pipeline.png",
+    dpi=300,
+    bbox_inches="tight",
+    pad_inches=0.12,
+    facecolor="white"
+)
+plt.close(fig)
+
+
+doc=Document(ROOT/'USD_Capstone_Week_4_Draft_3_Group_1.docx')
+
 # Previous milestone text becomes black; new Week 5 material is blue.
 for p in doc.paragraphs:
- for r in p.runs:r.font.color.rgb=RGBColor(0,0,0)
-# The inherited cover put a three-cell author table inside three newspaper columns.
-# Give that table the full page width so all three authors remain visible in PDF.
-cover_cols=doc.sections[1]._sectPr.find(qn('w:cols'))
-cover_cols.attrib.clear();cover_cols.set(qn('w:num'),'1');cover_cols.set(qn('w:space'),'0')
-for child in list(cover_cols):cover_cols.remove(child)
+ for r in p.runs:
+  r.font.color.rgb=RGBColor(0,0,0)
+
 for t in doc.tables:
  for row in t.rows:
   for c in row.cells:
@@ -96,25 +195,93 @@ def table(title,columns,rows,best_columns=()):
  header=OxmlElement('w:tblHeader');t.rows[0]._tr.get_or_add_trPr().append(header)
  anchor._p.addprevious(t._tbl)
  return t
-# Carry forward the team's literature-review opening from the submitted Week 4
-# Draft 3 PDF; the repository's editable Draft 2 predates these revisions.
-lr_start=next(p for p in doc.paragraphs if p.text=='Forecasting Foundations and Feature Design')
-para('Short-term load forecasting research spans statistical regression, conventional machine-learning models, ensembles, and deep-learning architectures (Nti et al., 2020). Reported performance varies with the forecast horizon, load aggregation, predictor availability, and validation design, so no single method can be assumed to perform best across settings. The following review begins with forecasting and feature-design foundations, then examines model complexity, time-series validation, and the conditions under which deep learning may be appropriate.',before=lr_start)
+
+
 method=next(p for p in doc.paragraphs if p.text=='Data Preparation')
 para('Figure 4\nEnd-to-End Forecasting and Evaluation Pipeline',before=method)
-p=para('',before=method);p.add_run().add_picture(str(OUT/'pipeline.png'),width=Inches(3.15))
-para('Note. Annual validation determines the model choice. Historical 2025 evaluation informs limitations, not additional tuning.',before=method)
+p=para('',before=method);
+p.add_run().add_picture(str(OUT/'pipeline.png'),width=Inches(6.5))
+para(
+    'Note. Annual validation determines the model choice. Historical 2025 '
+    'evaluation informs limitations, not additional tuning.',
+    before=method,
+)
 para('Modeling','Heading 1')
 para('Prediction task and temporal design','Heading 2')
-para('The task is supervised regression: predict each hourly demand value for the next Pacific operating day from information available at noon on the preceding day. The resulting curve yields the daily maximum and its timing. Models use 20 predictors from the canonical Week 4 table: calendar variables, cyclical encodings, 48-hour and 168-hour demand lags, and six trailing-demand summaries. Current demand, EIA forecasts, quality flags, and imputed target values are excluded from predictors. Only observed targets passing the Week 4 quality mask contribute to fitting or scoring.')
-para('Expanding-window validation uses 2022, 2023, and 2024 as separate annual assessment periods. Each model is fitted once at the start of each year using earlier complete operating days whose final UTC hour precedes that year’s first issuance cutoff. This prevents training labels from extending past the first forecast origin. Forecast features update daily using available history, but model parameters remain fixed within each assessment year. Random shuffling would mix future and past observations and does not represent this deployment pattern. The final fit contains 52,501 valid targets through December 30, 2024; 2025 contains 8,711 valid hourly targets across 362 complete operating days.')
-para('This is a retrospective replication using revised EIA records. The Week 4 cleaning rule checks the following hour when identifying isolated discontinuities; that neighbor is at or before issuance for the historical inputs used here. No real-time reporting delay or publication-vintage archive is modeled. An earlier alternate analysis and the Week 4 exploratory figures already examined 2025, so the assessment year is not an untouched holdout. Configuration selection in this run nevertheless uses only the 2022–2024 validation scores. Operational claims require later, genuinely prospective testing.')
+para(
+    'The task is supervised regression: predict each hourly demand value for '
+    'the next Pacific operating day from information available at noon on the '
+    'preceding day. The resulting curve yields the daily maximum and its '
+    'timing.'
+)
+para(
+    'Expanding-window validation uses 2022, 2023, and 2024 as separate annual '
+    'assessment periods. Each model is fitted once at the start of each year '
+    'using earlier complete operating days whose final UTC hour precedes that '
+    'year’s first issuance cutoff. This prevents training labels from '
+    'extending past the first forecast origin. Forecast features update daily '
+    'using available history, but model parameters remain fixed within each '
+    'assessment year. Random shuffling would mix future and past observations '
+    'and does not represent this deployment pattern. The final fit contains '
+    '52,501 valid targets through December 30, 2024; 2025 contains 8,711 '
+    'valid hourly targets across 362 complete operating days.'
+)
+para(
+    'This is a retrospective replication using revised EIA records. The Week '
+    '4 cleaning rule checks the following hour when identifying isolated '
+    'discontinuities; that neighbor is at or before issuance for the '
+    'historical inputs used here. No real-time reporting delay or '
+    'publication-vintage archive is modeled. An earlier alternate analysis '
+    'and the Week 4 exploratory figures already examined 2025, so the '
+    'assessment year is not an untouched holdout. Configuration selection in '
+    'this run nevertheless uses only the 2022–2024 validation scores. '
+    'Operational claims require later, genuinely prospective testing.'
+)
 para('Models and selection','Heading 2')
-para('The weekly seasonal-naive baseline repeats demand 168 hours earlier, with 48-hour and training-median fallbacks if necessary; no fallback is needed in 2025. Ridge regression supplies an interpretable additive benchmark, with training-only median imputation and standardization. Two nonlinear alternatives represent interactions: a 100-tree random forest and histogram gradient boosting. Forest inputs receive training-only median imputation; boosting handles missing predictors directly. Implementations use scikit-learn 1.8.0, with random seed 599 for the tree ensembles.')
-para('The small development-only search compares ridge penalties of 1 and 100, forest minimum leaf sizes of 5 and 20, and boosting maximum leaf counts of 15 and 31. Boosting uses 200 iterations, learning rate 0.08, L2 regularization 1, and no automatic early stopping. Mean annual validation MAE selects each configuration and the final model. The selected settings are ridge alpha 100, forest leaf size 5, and boosting 31 leaves. Validation MAE is 1,789.4 MWh for weekly naive, 1,239.4 for ridge, 1,133.2 for forest, and 1,143.9 for boosting. Forest is therefore retained as the selected model before 2025 diagnostics are computed.')
+para(
+    'The weekly seasonal-naive baseline repeats demand 168 hours earlier, '
+    'with 48-hour and training-median fallbacks if necessary; no fallback is '
+    'needed in 2025. Ridge regression supplies an interpretable additive '
+    'benchmark, with training-only median imputation and standardization. Two '
+    'nonlinear alternatives represent interactions: a 100-tree random forest '
+    'and histogram gradient boosting. Forest inputs receive training-only '
+    'median imputation; boosting handles missing predictors directly. '
+    'Implementations use scikit-learn 1.8.0, with random seed 599 for the '
+    'tree ensembles.'
+)
+para(
+    'The small development-only search compares ridge penalties of 1 and 100, '
+    'forest minimum leaf sizes of 5 and 20, and boosting maximum leaf counts '
+    'of 15 and 31. Boosting uses 200 iterations, learning rate 0.08, L2 '
+    'regularization 1, and no automatic early stopping. Mean annual '
+    'validation MAE selects each configuration and the final model. The '
+    'selected settings are ridge alpha 100, forest leaf size 5, and boosting '
+    '31 leaves. Validation MAE is 1,789.4 MWh for weekly naive, 1,239.4 for '
+    'ridge, 1,133.2 for forest, and 1,143.9 for boosting. Forest was '
+    'therefore retained as the selected model before examining the 2025 '
+    'evaluation results. Although ridge regression offers greater '
+    'interpretability and lower computational complexity, random forest '
+    'achieved the lowest mean annual validation MAE, suggesting that its '
+    'ability to capture nonlinear relationships improved predictive '
+    'performance. Gradient boosting provided competitive results but did not '
+    'outperform random forest during validation. These findings support the '
+    'selection of random forest for hourly demand forecasting while '
+    'acknowledging the trade-offs between predictive accuracy, '
+    'interpretability, and model complexity.'
+)
 para('Evaluation','Heading 1')
 para('Metrics and uncertainty','Heading 2')
-para('Hourly MAE is the primary selection metric because it expresses average error in the original MWh units. RMSE emphasizes large misses; MAPE provides a relative comparison because valid demand is strictly positive. Daily peak MAE compares the maximum predicted and observed hourly values. Timing error is the absolute elapsed-hour distance between their earliest UTC occurrences. Only days with every target observed are eligible, including the 23-hour and 25-hour daylight-saving days. These metrics describe forecast errors; they do not directly estimate reserve costs or reliability gains.')
+para(
+    'Hourly MAE is the primary selection metric because it expresses average '
+    'error in the original MWh units. RMSE emphasizes large misses; MAPE '
+    'provides a relative comparison because valid demand is strictly '
+    'positive. Daily peak MAE compares the maximum predicted and observed '
+    'hourly values. Timing error is the absolute elapsed-hour distance '
+    'between their earliest UTC occurrences. Only days with every target '
+    'observed are eligible, including the 23-hour and 25-hour daylight-saving '
+    'days. These metrics describe forecast errors; they do not directly '
+    'estimate reserve costs or reliability gains.'
+)
 short={'Weekly naive':'Weekly naive','Ridge':'Ridge','Random forest':'Forest','Gradient boosting':'Boosting'}
 rows=[]
 for name in short:
@@ -122,24 +289,181 @@ for name in short:
  te=scores[(scores.model==name)&(scores.partition=='Test 2025')].iloc[0]
  rows.append([short[name],f'{tr.mae:.1f}',f'{te.mae:.1f}',f'{te.rmse:.1f}'])
 table('Table 4\nHourly Regression Errors in MWh',['Model','Train MAE','2025 MAE','2025 RMSE'],rows,(2,3))
-para('Note. Training errors are apparent fit errors, not cross-validation estimates. Green marks the lowest and red the highest 2025 error in each column.')
+para(
+    'Note. Training errors are apparent fit errors, not cross-validation '
+    'estimates. Green marks the lowest and red the highest 2025 error in each '
+    'column.'
+)
 rows=[]
 for name in short:
  r=scores[(scores.model==name)&(scores.partition=='Test 2025')].iloc[0]
  rows.append([short[name],f'{r.mape:.2f}',f'{r.peak_mae:.1f}',f'{r.timing_mae:.2f}'])
 table('Table 5\nRelative and Daily Peak Errors in 2025',['Model','MAPE %','Peak MAE MWh','Timing h'],rows,(1,2,3))
-para('Forest reduces hourly MAE by 32.0% relative to the weekly baseline. Boosting has slightly lower 2025 hourly MAE, while ridge has the lowest daily peak MAE; neither observation changes the validation-based selection. Forest’s training MAE of 482.0 MWh versus assessment MAE of 1,066.1 MWh indicates a substantial generalization gap. Ridge has a smaller gap and remains a credible simpler alternative. This comparison supports nonlinear modeling for average hourly accuracy but does not establish a single winner for every planning objective.')
-para('A paired circular moving-block bootstrap resamples seven consecutive calendar days per block over 2,000 replicates. Forest hourly MAE has a conditional 95% interval of 968.4–1,177.9 MWh. Its improvement over weekly naive has an interval of 362.5–655.1 MWh. These intervals account partly for short-range dependence, but are conditional on fitted models and one assessment year; they exclude retraining, source revisions, and future regime uncertainty. They are not prediction intervals for tomorrow’s load.')
+
+# Week 5 reviewer addition: Hyperparameter tuning comparison
+validation = pd.read_csv(OUT / 'validation_scores.csv')
+protocol = json.loads((OUT / 'protocol.json').read_text())
+
+tuning_rows = []
+
+for model in ['Ridge', 'Random forest', 'Gradient boosting']:
+    configs = protocol['configurations'][model]
+
+    for config_index, config in enumerate(configs):
+        mean_mae = validation.loc[
+            (validation['model'] == model) &
+            (validation['config'] == config_index),
+            'mae'
+        ].mean()
+
+        parameter, value = next(iter(config.items()))
+        display_names = {
+    'alpha': 'Alpha',
+    'min_samples_leaf': 'Min leaf',
+    'max_leaf_nodes': 'Max leaves'
+}
+        selected = selection['selected_configs'][model] == config_index
+
+        tuning_rows.append([
+            model,
+            f"{display_names[parameter]}: {value:g}" + (" *" if selected else ""),
+            f"{mean_mae:,.1f}"
+        ])
+
+table(
+    'Table 6\nHyperparameter Tuning Comparison Across Validation Years',
+    ['Model', 'Configuration', 'MAE (MWh)'],
+    tuning_rows
+)
+
+para(
+    'Note. Validation MAE is the unweighted average across the '
+    '2022, 2023, and 2024 annual validation periods. '
+    'Lower values indicate better performance. '
+    'An asterisk (*) identifies the selected configuration.'
+)
+
+para(
+    'The limited hyperparameter search produced modest performance '
+    'differences across configurations. Random forest performed better '
+    'with a minimum leaf size of 5 than 20, while ridge regression '
+    'and gradient boosting showed smaller differences between their '
+    'evaluated configurations. The search therefore supported model '
+    'selection without demonstrating that the global optimum had '
+    'been identified.'
+)
+
+para(
+    'Forest reduces hourly MAE by 32.0% relative to the weekly baseline. '
+    'Boosting has slightly lower 2025 hourly MAE, while ridge has the lowest '
+    'daily peak MAE; neither observation changes the validation-based '
+    'selection. Forest’s training MAE of 482.0 MWh versus assessment MAE of '
+    '1,066.1 MWh indicates a substantial generalization gap. Ridge has a '
+    'smaller gap and remains a credible simpler alternative. This comparison '
+    'supports nonlinear modeling for average hourly accuracy but does not '
+    'establish a single winner for every planning objective.'
+)
+
+para(
+    'From a stakeholder perspective, the 32.0% reduction in hourly '
+    'MAE relative to the weekly naive baseline suggests that random '
+    'forest provides more accurate historical hourly demand estimates. '
+    'However, improved average accuracy does not necessarily translate '
+    'into improved reliability during extreme-demand periods. '
+    'The model showed a tendency to underestimate high-demand peaks, '
+    'which could be particularly concerning for electricity resource '
+    'planning if forecasts were used operationally. '
+    'Therefore, these findings support using the model as a '
+    'supplementary historical planning and analysis tool rather than '
+    'a standalone operational forecasting system.'
+)
+para(
+    'A paired circular moving-block bootstrap resamples seven consecutive '
+    'calendar days per block over 2,000 replicates. Forest hourly MAE has a '
+    'conditional 95% interval of 968.4–1,177.9 MWh. Its improvement over '
+    'weekly naive has an interval of 362.5–655.1 MWh. These intervals account '
+    'partly for short-range dependence, but are conditional on fitted models '
+    'and one assessment year; they exclude retraining, source revisions, and '
+    'future regime uncertainty. They are not prediction intervals for '
+    'tomorrow’s load.'
+)
 para('Failure analysis and interpretation','Heading 2')
-para('Forest MAE varies from 736.5 MWh in winter to 1,346.2 MWh in summer. The training-period 90th percentile of complete-day peaks is 38,752 MWh. On the 20 assessment days exceeding that threshold, forest peak MAE rises to 3,415.0 MWh and average peak bias is −2,378.8 MWh. Underprediction at stressful times is consequential for planning. Weather forecasts, temperature interactions, and an explicitly asymmetric loss are appropriate next experiments, but their benefits have not been measured here.')
-para('Holding fitted predictions fixed, removing the two daylight-saving transition days gives forest hourly MAE of 1,066.7 MWh over 8,663 valid hours. Restoring the one additional 2025 discontinuity-flagged raw target gives 1,068.3 MWh over 8,712 hours. The average-error conclusion is stable to these scoring changes. This does not test retraining on unfiltered histories or establish that every excluded observation is erroneous.')
-para('Global grouped permutation diagnostics increase forest MAE by approximately 2,601 MWh when demand lags are shuffled, 661 MWh for weekday and holiday features, 222 MWh for clock-hour features, 210 MWh for recent summaries, and 102 MWh for annual-cycle features. Each group is permuted jointly over five repeats. Correlations between groups and unrealistic shuffled combinations limit causal interpretation; these are model-reliance diagnostics rather than causal effects.')
-para('The local example is the earliest occurrence of the largest observed 2025 target: August 21 at 8 p.m. Pacific, 43,860 MWh. Forest predicts 36,476.8 MWh, underestimating by 7,383.2 MWh. Replacing the lag group with training medians reduces the prediction by 11,458.7 MWh, indicating reliance on elevated historical demand. Replacing recent summaries increases it by 2,331.7 MWh. These one-group-at-a-time perturbations are not additive explanations or SHAP values and may create implausible input combinations. The example illustrates why a plausible historical pattern can still miss an extreme peak.')
+para(
+    'Forest MAE varies from 736.5 MWh in winter to 1,346.2 MWh in summer. The '
+    'training-period 90th percentile of complete-day peaks is 38,752 MWh. On '
+    'the 20 assessment days exceeding that threshold, forest peak MAE rises '
+    'to 3,415.0 MWh and average peak bias is −2,378.8 MWh. Underprediction at '
+    'stressful times is consequential for planning. Weather forecasts, '
+    'temperature interactions, and an explicitly asymmetric loss are '
+    'appropriate next experiments, but their benefits have not been measured '
+    'here.'
+)
+para(
+    'Holding fitted predictions fixed, removing the two daylight-saving '
+    'transition days gives forest hourly MAE of 1,066.7 MWh over 8,663 valid '
+    'hours. Restoring the one additional 2025 discontinuity-flagged raw '
+    'target gives 1,068.3 MWh over 8,712 hours. The average-error conclusion '
+    'is stable to these scoring changes. This does not test retraining on '
+    'unfiltered histories or establish that every excluded observation is '
+    'erroneous.'
+)
+para(
+    'Global grouped permutation diagnostics increase forest MAE by '
+    'approximately 2,601 MWh when demand lags are shuffled, 661 MWh for '
+    'weekday and holiday features, 222 MWh for clock-hour features, 210 MWh '
+    'for recent summaries, and 102 MWh for annual-cycle features. Each group '
+    'is permuted jointly over five repeats. Correlations between groups and '
+    'unrealistic shuffled combinations limit causal interpretation; these are '
+    'model-reliance diagnostics rather than causal effects.'
+)
+para(
+    'The local example is the earliest occurrence of the largest observed '
+    '2025 target: August 21 at 8 p.m. Pacific, 43,860 MWh. Forest predicts '
+    '36,476.8 MWh, underestimating by 7,383.2 MWh. Replacing the lag group '
+    'with training medians reduces the prediction by 11,458.7 MWh, indicating '
+    'reliance on elevated historical demand. Replacing recent summaries '
+    'increases it by 2,331.7 MWh. These one-group-at-a-time perturbations are '
+    'not additive explanations or SHAP values and may create implausible '
+    'input combinations. The example illustrates why a plausible historical '
+    'pattern can still miss an extreme peak.'
+)
 para('Reproducibility and responsible use','Heading 2')
-para('The repository records the feature-file SHA-256, search protocol, validation selection, folds, all hourly predictions, daily peak scores, uncertainty summaries, and explanation diagnostics. The accompanying historical explorer displays model curves and errors with explicit data-quality and retrospective-use notices. It supports inspection of the experiment; it is not a validated real-time grid scheduling system.')
-# Add explicit acknowledgement without claiming human validation has happened.
-ack=next(p for p in doc.paragraphs if p.text=='REFERENCES')
-para('For the Week 5 extension, OpenAI ChatGPT/Codex assisted with reconciling prior analyses to the shared Week 4 dataset, adapting and executing modeling code, drafting these sections, and generating tables and diagnostics. Automated checks verified data-source identity, validation-only selection, exported error calculations, and daily eligibility including daylight-saving transitions. The authors must review and understand the code, assumptions, and prose before submission; automated checks do not substitute for their academic responsibility.',before=ack)
+para(
+    'The repository records the feature-file SHA-256, search protocol, '
+    'validation selection, folds, all hourly predictions, daily peak scores, '
+    'uncertainty summaries, and explanation diagnostics. The accompanying '
+    'historical explorer displays model curves and errors with explicit '
+    'data-quality and retrospective-use notices. It supports inspection of '
+    'the experiment; it is not a validated real-time grid scheduling system.'
+)
+
+ack = next(p for p in doc.paragraphs if p.text == 'REFERENCES')
+
+for p in list(doc.paragraphs):
+    if p.text.startswith('The authors used OpenAI Codex'):
+        p._element.getparent().remove(p._element)
+
+para(
+    'The authors utilized OpenAI ChatGPT (GPT-6; https://chatgpt.com/) '
+    'and OpenAI Codex (https://openai.com/codex/) as supplementary '
+    'tools throughout the Capstone project. These tools supported '
+    'literature discovery, code development and debugging, '
+    'methodological review, data analysis, and refinement of the '
+    "manuscript's organization and presentation. AI-generated "
+    'suggestions and outputs were treated as supporting resources '
+    'rather than substitutes for independent research and technical '
+    'judgment. The authors reviewed and revised the AI-assisted '
+    'materials, evaluated the analytical results using project data '
+    'and appropriate validation procedures, and retained responsibility '
+    'for methodological decisions, interpretation of findings, and '
+    'the accuracy and integrity of the final manuscript.',
+    before=ack
+)
+
 doc.save(DEST/'USD_Capstone_Week_5_Group_1.docx')
-(DEST/'MODELING_AND_EVALUATION.md').write_text('\n\n'.join(blocks))
+(DEST/'MODELING_AND_EVALUATION.md').write_text(
+    '\n\n'.join(blocks),
+    encoding='utf-8'
+)
+
 print(DEST/'USD_Capstone_Week_5_Group_1.docx')

@@ -1,9 +1,9 @@
 {
   "author_continuity_fill_percent": 0.061921522617650895,
   "author_continuity_fills": 38,
-  "autocorrelation_168h": 0.8414728704325709,
-  "autocorrelation_24h": 0.9266453310295482,
-  "autocorrelation_48h": 0.8432186884591525,
+  "autocorrelation_168h": 0.8414728704325725,
+  "autocorrelation_24h": 0.9266453310295448,
+  "autocorrelation_48h": 0.8432186884591518,
   "duplicate_timestamps": 0,
   "eia_imputed_demand_percent": 0.15317429279103115,
   "eia_imputed_demand_values": 94,

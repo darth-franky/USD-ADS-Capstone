@@ -1,5 +1,3 @@
-Short-term load forecasting research spans statistical regression, conventional machine-learning models, ensembles, and deep-learning architectures (Nti et al., 2020). Reported performance varies with the forecast horizon, load aggregation, predictor availability, and validation design, so no single method can be assumed to perform best across settings. The following review begins with forecasting and feature-design foundations, then examines model complexity, time-series validation, and the conditions under which deep learning may be appropriate.
-
 Figure 4
 End-to-End Forecasting and Evaluation Pipeline
 
@@ -11,7 +9,7 @@ Modeling
 
 Prediction task and temporal design
 
-The task is supervised regression: predict each hourly demand value for the next Pacific operating day from information available at noon on the preceding day. The resulting curve yields the daily maximum and its timing. Models use 20 predictors from the canonical Week 4 table: calendar variables, cyclical encodings, 48-hour and 168-hour demand lags, and six trailing-demand summaries. Current demand, EIA forecasts, quality flags, and imputed target values are excluded from predictors. Only observed targets passing the Week 4 quality mask contribute to fitting or scoring.
+The task is supervised regression: predict each hourly demand value for the next Pacific operating day from information available at noon on the preceding day. The resulting curve yields the daily maximum and its timing.
 
 Expanding-window validation uses 2022, 2023, and 2024 as separate annual assessment periods. Each model is fitted once at the start of each year using earlier complete operating days whose final UTC hour precedes that year’s first issuance cutoff. This prevents training labels from extending past the first forecast origin. Forecast features update daily using available history, but model parameters remain fixed within each assessment year. Random shuffling would mix future and past observations and does not represent this deployment pattern. The final fit contains 52,501 valid targets through December 30, 2024; 2025 contains 8,711 valid hourly targets across 362 complete operating days.
 
@@ -21,7 +19,7 @@ Models and selection
 
 The weekly seasonal-naive baseline repeats demand 168 hours earlier, with 48-hour and training-median fallbacks if necessary; no fallback is needed in 2025. Ridge regression supplies an interpretable additive benchmark, with training-only median imputation and standardization. Two nonlinear alternatives represent interactions: a 100-tree random forest and histogram gradient boosting. Forest inputs receive training-only median imputation; boosting handles missing predictors directly. Implementations use scikit-learn 1.8.0, with random seed 599 for the tree ensembles.
 
-The small development-only search compares ridge penalties of 1 and 100, forest minimum leaf sizes of 5 and 20, and boosting maximum leaf counts of 15 and 31. Boosting uses 200 iterations, learning rate 0.08, L2 regularization 1, and no automatic early stopping. Mean annual validation MAE selects each configuration and the final model. The selected settings are ridge alpha 100, forest leaf size 5, and boosting 31 leaves. Validation MAE is 1,789.4 MWh for weekly naive, 1,239.4 for ridge, 1,133.2 for forest, and 1,143.9 for boosting. Forest is therefore retained as the selected model before 2025 diagnostics are computed.
+The small development-only search compares ridge penalties of 1 and 100, forest minimum leaf sizes of 5 and 20, and boosting maximum leaf counts of 15 and 31. Boosting uses 200 iterations, learning rate 0.08, L2 regularization 1, and no automatic early stopping. Mean annual validation MAE selects each configuration and the final model. The selected settings are ridge alpha 100, forest leaf size 5, and boosting 31 leaves. Validation MAE is 1,789.4 MWh for weekly naive, 1,239.4 for ridge, 1,133.2 for forest, and 1,143.9 for boosting. Forest was therefore retained as the selected model before examining the 2025 evaluation results. Although ridge regression offers greater interpretability and lower computational complexity, random forest achieved the lowest mean annual validation MAE, suggesting that its ability to capture nonlinear relationships improved predictive performance. Gradient boosting provided competitive results but did not outperform random forest during validation. These findings support the selection of random forest for hourly demand forecasting while acknowledging the trade-offs between predictive accuracy, interpretability, and model complexity.
 
 Evaluation
 
@@ -37,7 +35,16 @@ Note. Training errors are apparent fit errors, not cross-validation estimates. G
 Table 5
 Relative and Daily Peak Errors in 2025
 
+Table 6
+Hyperparameter Tuning Comparison Across Validation Years
+
+Note. Validation MAE is the unweighted average across the 2022, 2023, and 2024 annual validation periods. Lower values indicate better performance. An asterisk (*) identifies the selected configuration.
+
+The limited hyperparameter search produced modest performance differences across configurations. Random forest performed better with a minimum leaf size of 5 than 20, while ridge regression and gradient boosting showed smaller differences between their evaluated configurations. The search therefore supported model selection without demonstrating that the global optimum had been identified.
+
 Forest reduces hourly MAE by 32.0% relative to the weekly baseline. Boosting has slightly lower 2025 hourly MAE, while ridge has the lowest daily peak MAE; neither observation changes the validation-based selection. Forest’s training MAE of 482.0 MWh versus assessment MAE of 1,066.1 MWh indicates a substantial generalization gap. Ridge has a smaller gap and remains a credible simpler alternative. This comparison supports nonlinear modeling for average hourly accuracy but does not establish a single winner for every planning objective.
+
+From a stakeholder perspective, the 32.0% reduction in hourly MAE relative to the weekly naive baseline suggests that random forest provides more accurate historical hourly demand estimates. However, improved average accuracy does not necessarily translate into improved reliability during extreme-demand periods. The model showed a tendency to underestimate high-demand peaks, which could be particularly concerning for electricity resource planning if forecasts were used operationally. Therefore, these findings support using the model as a supplementary historical planning and analysis tool rather than a standalone operational forecasting system.
 
 A paired circular moving-block bootstrap resamples seven consecutive calendar days per block over 2,000 replicates. Forest hourly MAE has a conditional 95% interval of 968.4–1,177.9 MWh. Its improvement over weekly naive has an interval of 362.5–655.1 MWh. These intervals account partly for short-range dependence, but are conditional on fitted models and one assessment year; they exclude retraining, source revisions, and future regime uncertainty. They are not prediction intervals for tomorrow’s load.
 
@@ -55,4 +62,4 @@ Reproducibility and responsible use
 
 The repository records the feature-file SHA-256, search protocol, validation selection, folds, all hourly predictions, daily peak scores, uncertainty summaries, and explanation diagnostics. The accompanying historical explorer displays model curves and errors with explicit data-quality and retrospective-use notices. It supports inspection of the experiment; it is not a validated real-time grid scheduling system.
 
-For the Week 5 extension, OpenAI ChatGPT/Codex assisted with reconciling prior analyses to the shared Week 4 dataset, adapting and executing modeling code, drafting these sections, and generating tables and diagnostics. Automated checks verified data-source identity, validation-only selection, exported error calculations, and daily eligibility including daylight-saving transitions. The authors must review and understand the code, assumptions, and prose before submission; automated checks do not substitute for their academic responsibility.
+The authors utilized OpenAI ChatGPT (GPT-6; https://chatgpt.com/) and OpenAI Codex (https://openai.com/codex/) as supplementary tools throughout the Capstone project. These tools supported literature discovery, code development and debugging, methodological review, data analysis, and refinement of the manuscript's organization and presentation. AI-generated suggestions and outputs were treated as supporting resources rather than substitutes for independent research and technical judgment. The authors reviewed and revised the AI-assisted materials, evaluated the analytical results using project data and appropriate validation procedures, and retained responsibility for methodological decisions, interpretation of findings, and the accuracy and integrity of the final manuscript.
